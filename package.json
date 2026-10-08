@@ -1,0 +1,10 @@
+{
+  "name": "gameday",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Game Day — who to root for across all your Sleeper leagues",
+  "scripts": {
+    "live": "npx -y live-server --port=3000 --open=index.html --watch=.",
+    "dev": "npm run live"
+  }
+}

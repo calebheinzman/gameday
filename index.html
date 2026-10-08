@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f5f6f8" media="(prefers-color-scheme: light)" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Game Day" />
+    <title>Game Day</title>
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icon.svg" />
+    <link rel="stylesheet" href="styles.css?v=1" />
+    <script type="module" src="js/app.js?v=1"></script>
+  </head>
+  <body>
+    <!-- Loading / account error -->
+    <section class="center-view" data-view="loading">
+      <div class="spinner" aria-hidden="true"></div>
+      <p class="muted" data-loading-message>Loading…</p>
+      <button type="button" class="button" data-loading-retry hidden>Try again</button>
+    </section>
+
+    <!-- Signed out -->
+    <section class="center-view" data-view="auth" hidden>
+      <div class="card">
+        <div class="brand"><span class="brand-mark" aria-hidden="true">🏈</span> Game Day</div>
+        <p class="lede">Every Sleeper league on one screen: who you start, who you face, live.</p>
+        <form class="form" data-auth-form>
+          <label class="field">
+            <span>Email</span>
+            <input type="email" name="email" autocomplete="email" inputmode="email" required data-auth-email />
+          </label>
+          <button type="submit" class="button button--primary" data-auth-submit>Send sign-in link</button>
+          <p class="form-message" role="status" data-auth-message></p>
+        </form>
+        <form class="form form--code" data-code-form hidden>
+          <label class="field">
+            <span>Or type the code from the email</span>
+            <input type="text" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" required data-code-input />
+          </label>
+          <button type="submit" class="button" data-code-submit>Sign in with code</button>
+          <p class="form-message" role="status" data-code-message></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- Link a Sleeper account -->
+    <section class="center-view" data-view="setup" hidden>
+      <div class="card">
+        <div class="brand"><span class="brand-mark" aria-hidden="true">🏈</span> Game Day</div>
+        <p class="lede">What's your Sleeper username? We'll find all of your leagues.</p>
+        <form class="form" data-setup-form>
+          <label class="field">
+            <span>Sleeper username</span>
+            <input type="text" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required data-setup-username />
+          </label>
+          <button type="submit" class="button button--primary" data-setup-submit>Find my leagues</button>
+          <button type="button" class="button button--ghost" data-setup-cancel hidden>Cancel</button>
+          <p class="form-message" role="status" data-setup-message></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- Game day -->
+    <section class="gameday" data-view="gameday" hidden>
+      <header class="topbar">
+        <div class="week-nav">
+          <button type="button" class="icon-button" aria-label="Previous week" data-week-prev>‹</button>
+          <h1 class="week-label" data-week-label>Game Day</h1>
+          <button type="button" class="icon-button" aria-label="Next week" data-week-next>›</button>
+        </div>
+        <div class="topbar-actions">
+          <span class="status" data-status data-state="loading">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span data-status-text>Loading…</span>
+          </span>
+          <button type="button" class="icon-button" aria-label="Refresh scores" data-refresh>↻</button>
+          <button type="button" class="icon-button" aria-label="Settings" data-open-settings>⚙︎</button>
+        </div>
+      </header>
+
+      <main class="content" data-content>
+        <section class="block">
+          <h2 class="block-title">Matchups</h2>
+          <div class="scoreboard" data-scoreboard></div>
+        </section>
+
+        <section class="block">
+          <div class="board-head">
+            <h2 class="block-title block-title--for">Root for <span class="count" data-for-count></span></h2>
+            <h2 class="block-title block-title--against">Root against <span class="count" data-against-count></span></h2>
+          </div>
+          <div class="board" data-board></div>
+        </section>
+      </main>
+
+      <div class="center-view center-view--inline" data-empty hidden>
+        <p class="muted">No leagues are switched on. Open settings ⚙︎ to pick some.</p>
+      </div>
+    </section>
+
+    <!-- Settings sheet -->
+    <dialog class="sheet" data-settings aria-labelledby="settings-title">
+      <div class="sheet-header">
+        <h2 id="settings-title">Settings</h2>
+        <button type="button" class="icon-button" aria-label="Close settings" data-settings-close>✕</button>
+      </div>
+
+      <div class="sheet-section">
+        <div class="sheet-label">Sleeper account</div>
+        <div class="sheet-row">
+          <strong data-settings-username></strong>
+          <button type="button" class="button button--small" data-settings-change>Change</button>
+        </div>
+      </div>
+
+      <div class="sheet-section">
+        <div class="sheet-row">
+          <div class="sheet-label">Leagues</div>
+          <button type="button" class="button button--small" data-settings-resync>Refresh list</button>
+        </div>
+        <ul class="toggle-list" data-settings-leagues></ul>
+        <p class="form-message" role="status" data-settings-message></p>
+      </div>
+
+      <button type="button" class="button button--ghost button--danger" data-settings-signout>Sign out</button>
+    </dialog>
+  </body>
+</html>
