@@ -3,7 +3,7 @@
 // limits every query to the signed-in user's own rows.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.117.3";
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "../config.js?v=3";
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "../config.js?v=4";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 

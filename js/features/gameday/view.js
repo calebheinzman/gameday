@@ -2,7 +2,7 @@
 // touches rows whose content changed, open lineups stay open, and changed
 // point totals get a brief highlight.
 
-import { h } from "../../utils/dom.js?v=3";
+import { h } from "../../utils/dom.js?v=4";
 
 const HEADSHOT_URL = (id) => `https://sleepercdn.com/content/nfl/players/thumb/${id}.jpg`;
 const TEAM_LOGO_URL = (team) => `https://sleepercdn.com/images/team_logos/nfl/${team.toLowerCase()}.png`;

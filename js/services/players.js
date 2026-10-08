@@ -3,7 +3,7 @@
 // pull it at most once a day, so a slimmed copy is cached in localStorage and
 // refreshed on the first visit of each day.
 
-import { PLAYERS_URL } from "./sleeper.js?v=3";
+import { PLAYERS_URL } from "./sleeper.js?v=4";
 
 const STORAGE_KEY = "gameday.players.v1";
 

@@ -2,11 +2,11 @@
 // the refresh loop. Polls fast while games are on and slowly otherwise, and
 // pauses while the tab is hidden.
 
-import { LIVE_POLL_MS, IDLE_POLL_MS } from "../../config.js?v=3";
-import { getNflState, getLeagueBundle, getMatchups, getWeekSchedule } from "../../services/sleeper.js?v=3";
-import { loadPlayers } from "../../services/players.js?v=3";
-import { buildGameday } from "./model.js?v=3";
-import { createGamedayView } from "./view.js?v=3";
+import { LIVE_POLL_MS, IDLE_POLL_MS } from "../../config.js?v=4";
+import { getNflState, getLeagueBundle, getMatchups, getWeekSchedule } from "../../services/sleeper.js?v=4";
+import { loadPlayers } from "../../services/players.js?v=4";
+import { buildGameday } from "./model.js?v=4";
+import { createGamedayView } from "./view.js?v=4";
 
 const FIRST_WEEK = 1;
 const LAST_WEEK = 18;

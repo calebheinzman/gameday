@@ -12,9 +12,9 @@ import {
   syncLeagues,
   clearLeagues,
   setLeagueEnabled,
-} from "../../services/supabase.js?v=3";
-import { getNflState, resolveUser, getUserLeagues } from "../../services/sleeper.js?v=3";
-import { h } from "../../utils/dom.js?v=3";
+} from "../../services/supabase.js?v=4";
+import { getNflState, resolveUser, getUserLeagues } from "../../services/sleeper.js?v=4";
+import { h } from "../../utils/dom.js?v=4";
 
 export function createAccount(root, { onSignedOut, onNeedsSetup, onLoading, onReady, onLoadFailed }) {
   const els = {
@@ -103,7 +103,9 @@ export function createAccount(root, { onSignedOut, onNeedsSetup, onLoading, onRe
       els.authMessage.textContent = `Check ${email} and tap the link to sign in.`;
     } catch (err) {
       els.authMessage.classList.add("is-error");
-      els.authMessage.textContent = err.message;
+      els.authMessage.textContent = /rate limit/i.test(err.message)
+        ? "Too many sign-in emails for now (the free email service sends 2 an hour). Use the newest link you already got, or try again later."
+        : err.message;
     } finally {
       els.authSubmit.disabled = false;
     }
