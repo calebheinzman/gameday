@@ -5,7 +5,6 @@
 import {
   watchSession,
   sendMagicLink,
-  verifyEmailCode,
   signOut,
   getProfile,
   saveProfile,
@@ -23,10 +22,6 @@ export function createAccount(root, { onSignedOut, onNeedsSetup, onLoading, onRe
     authEmail: root.querySelector("[data-auth-email]"),
     authSubmit: root.querySelector("[data-auth-submit]"),
     authMessage: root.querySelector("[data-auth-message]"),
-    codeForm: root.querySelector("[data-code-form]"),
-    codeInput: root.querySelector("[data-code-input]"),
-    codeSubmit: root.querySelector("[data-code-submit]"),
-    codeMessage: root.querySelector("[data-code-message]"),
     setupForm: root.querySelector("[data-setup-form]"),
     setupUsername: root.querySelector("[data-setup-username]"),
     setupSubmit: root.querySelector("[data-setup-submit]"),
@@ -106,31 +101,11 @@ export function createAccount(root, { onSignedOut, onNeedsSetup, onLoading, onRe
       await sendMagicLink(email);
       els.authMessage.classList.add("is-success");
       els.authMessage.textContent = `Check ${email} and tap the link to sign in.`;
-      els.codeForm.hidden = false;
     } catch (err) {
       els.authMessage.classList.add("is-error");
       els.authMessage.textContent = err.message;
     } finally {
       els.authSubmit.disabled = false;
-    }
-  });
-
-  els.codeForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const email = els.authEmail.value.trim();
-    const code = els.codeInput.value.replace(/\s/g, "");
-    if (!email || !code) return;
-    els.codeSubmit.disabled = true;
-    els.codeMessage.className = "form-message";
-    els.codeMessage.textContent = "Checking…";
-    try {
-      await verifyEmailCode(email, code);
-      els.codeMessage.textContent = "";
-    } catch (err) {
-      els.codeMessage.classList.add("is-error");
-      els.codeMessage.textContent = err.message;
-    } finally {
-      els.codeSubmit.disabled = false;
     }
   });
 

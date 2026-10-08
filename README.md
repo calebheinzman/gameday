@@ -21,17 +21,15 @@ A static site (HTML/CSS/ES modules, no build step). The browser talks directly t
 npm run dev   # http://localhost:3000
 ```
 
-## Supabase setup (one time)
+## Supabase
 
-Project: `gameday` (`whzscbcoduaxbjcftuce`). Schema is in `supabase/migrations/0001_init.sql`.
+Project `gameday` (ref `ymleajgxpytkxfeswxfp`) in the free **Game Day** organization. Schema: `supabase/migrations/0001_init.sql`.
 
-In the Supabase dashboard → **Authentication → URL Configuration**:
+Auth URL configuration (already set):
 
 - **Site URL**: `https://calebheinzman.github.io/gameday/`
-- **Redirect URLs**: add `https://calebheinzman.github.io/gameday/**` and `http://localhost:3000/**`
+- **Redirect URLs**: `https://calebheinzman.github.io/gameday/**`, `http://localhost:3000/**`
 
-Supabase's built-in email sender only sends a few emails per hour. That's fine for personal use; add custom SMTP under Authentication → Emails if you share the site widely.
+Supabase's built-in email sender only sends a few emails per hour and, on the free tier, its templates can't be customized. That's fine for personal use; add custom SMTP under Authentication → Emails if you share the site widely.
 
-To make the sign-in email also carry a typeable code (needed when the link would open in a different browser, e.g. a home-screen app on iPhone), edit **Authentication → Emails → Magic Link** and add `{{ .Token }}` to the template, e.g. `<p>Or enter this code: <strong>{{ .Token }}</strong></p>`.
-
-Tip: on iPhone, open the site in Safari and use **Share → Add to Home Screen** for a full-screen app.
+Sign-in links open in your phone's default browser, so sign in and use the site there (Safari on iPhone).

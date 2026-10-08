@@ -125,12 +125,6 @@ input {
   gap: 12px;
 }
 
-.form--code {
-  margin-top: 18px;
-  padding-top: 18px;
-  border-top: 1px solid var(--border);
-}
-
 .field {
   display: flex;
   flex-direction: column;

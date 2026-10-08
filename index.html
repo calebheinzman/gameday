@@ -12,8 +12,8 @@
     <title>Game Day</title>
     <link rel="icon" href="icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="icon.svg" />
-    <link rel="stylesheet" href="styles.css?v=1" />
-    <script type="module" src="js/app.js?v=1"></script>
+    <link rel="stylesheet" href="styles.css?v=2" />
+    <script type="module" src="js/app.js?v=2"></script>
   </head>
   <body>
     <!-- Loading / account error -->
@@ -35,14 +35,6 @@
           </label>
           <button type="submit" class="button button--primary" data-auth-submit>Send sign-in link</button>
           <p class="form-message" role="status" data-auth-message></p>
-        </form>
-        <form class="form form--code" data-code-form hidden>
-          <label class="field">
-            <span>Or type the code from the email</span>
-            <input type="text" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" required data-code-input />
-          </label>
-          <button type="submit" class="button" data-code-submit>Sign in with code</button>
-          <p class="form-message" role="status" data-code-message></p>
         </form>
       </div>
     </section>

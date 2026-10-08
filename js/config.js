@@ -2,8 +2,8 @@
 // every table is protected by row-level security, so it grants nothing on
 // its own.
 
-export const SUPABASE_URL = "https://whzscbcoduaxbjcftuce.supabase.co";
-export const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_MwuAMcmCyhbR5ze9VoZKcA_55HTQJX1";
+export const SUPABASE_URL = "https://ymleajgxpytkxfeswxfp.supabase.co";
+export const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Bv-xeuKquLKzWKpUShOuRg_uozJBMn6";
 
 // How often scores are re-pulled from Sleeper.
 export const LIVE_POLL_MS = 30 * 1000; // a game is on (or kicks off today)

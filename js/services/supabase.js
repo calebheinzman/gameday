@@ -28,12 +28,6 @@ export async function sendMagicLink(email) {
   unwrap(await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } }));
 }
 
-// The code from the same email, for when the link would open in a different
-// browser than the one signing in (e.g. a home-screen app on iPhone).
-export async function verifyEmailCode(email, token) {
-  unwrap(await supabase.auth.verifyOtp({ email, token, type: "email" }));
-}
-
 export async function signOut() {
   unwrap(await supabase.auth.signOut());
 }
