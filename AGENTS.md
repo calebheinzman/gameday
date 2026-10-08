@@ -36,7 +36,9 @@ Starts Live Server on port 3000. Magic links redirect to the page they were requ
 - Re-render through keyed `reconcile()` in `view.js` so polls only touch changed rows and open lineups stay open.
 - Schema changes go in a new numbered file in `supabase/migrations/`, and every table has RLS limiting rows to `auth.uid()`.
 - Only the publishable Supabase key may appear in client code.
-- Keep the `?v=` cache-busting values on `styles.css` and `js/app.js` in `index.html` in sync, and bump them when a deploy needs to bypass browser cache.
+- Cache busting: every asset URL carries the same `?v=N`: `styles.css`, `js/boot.js` and `js/app.js` in `index.html`, plus every relative `import` in `js/`. GitHub Pages lets browsers cache files for 10 minutes, and a page that mixes old and new modules can fail to start. Bump all of them together on every deploy that changes JS or CSS:
+  `sed -i '' -E 's/\?v=[0-9]+/?v=NEW/g' index.html $(grep -rl '?v=' js)`
+- `js/boot.js` is a classic script that swaps the endless "Loading…" for a reload prompt if the app fails to start; `app.js` sets `window.gamedayStarted` once it's running.
 - Remove dead code and temporary logging before finishing a change.
 
 ## Useful checks

@@ -12,9 +12,9 @@ import {
   syncLeagues,
   clearLeagues,
   setLeagueEnabled,
-} from "../../services/supabase.js";
-import { getNflState, resolveUser, getUserLeagues } from "../../services/sleeper.js";
-import { h } from "../../utils/dom.js";
+} from "../../services/supabase.js?v=3";
+import { getNflState, resolveUser, getUserLeagues } from "../../services/sleeper.js?v=3";
+import { h } from "../../utils/dom.js?v=3";
 
 export function createAccount(root, { onSignedOut, onNeedsSetup, onLoading, onReady, onLoadFailed }) {
   const els = {
@@ -213,8 +213,21 @@ export function createAccount(root, { onSignedOut, onNeedsSetup, onLoading, onRe
     leaguesChanged = false;
   });
 
+  // A dead sign-in link comes back as "#error=…&error_description=…".
+  function showLinkError() {
+    const params = new URLSearchParams(location.hash.slice(1));
+    if (!params.get("error")) return;
+    els.authMessage.className = "form-message is-error";
+    els.authMessage.textContent =
+      params.get("error_code") === "otp_expired"
+        ? "That sign-in link expired or was already used. Send a new one."
+        : params.get("error_description") || "That sign-in link didn't work. Send a new one.";
+    history.replaceState(null, "", location.pathname + location.search);
+  }
+
   return {
     start() {
+      showLinkError();
       watchSession(handleSession);
     },
 

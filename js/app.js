@@ -1,8 +1,8 @@
 // Startup and coordination: decides which view is on screen and hands the
 // signed-in user's leagues from the account feature to the game-day feature.
 
-import { createAccount } from "./features/account/index.js";
-import { createGameday } from "./features/gameday/index.js";
+import { createAccount } from "./features/account/index.js?v=3";
+import { createGameday } from "./features/gameday/index.js?v=3";
 
 const views = {
   loading: document.querySelector("[data-view='loading']"),
@@ -54,3 +54,4 @@ settingsButton.addEventListener("click", () => account.openSettings());
 
 showView("loading");
 account.start();
+window.gamedayStarted = true; // tells js/boot.js the app is running
