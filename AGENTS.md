@@ -12,11 +12,13 @@ Game Day is a static, mobile-first site that shows, across every Sleeper league 
 - `js/config.js`: Supabase URL, publishable key, poll intervals.
 - `js/services/sleeper.js`: Sleeper REST requests and response normalization.
 - `js/services/players.js`: Daily localStorage cache of the slimmed Sleeper player directory.
+- `js/services/espn.js`: ESPN public scoreboard: game clock, kickoff times, possession and red zone (Sleeper has none of these).
+- `js/services/prefs.js`: Per-device display preferences (board grouping) in localStorage.
 - `js/services/supabase.js`: Supabase client, auth, and profile/league persistence.
 - `js/features/account/`: Sign-in, linking a Sleeper username, settings sheet.
-- `js/features/gameday/index.js`: Week selection, data cache, and the refresh loop.
-- `js/features/gameday/model.js`: Pure rules that turn Sleeper data into scoreboards and the root-for/against board (grouped by NFL game).
-- `js/features/gameday/view.js`: Keyed rendering of the scoreboard and the two-column game board (mine left, opponents right).
+- `js/features/gameday/index.js`: Week selection, data cache, board grouping and Live filter, and the refresh loop.
+- `js/features/gameday/model.js`: Pure rules that turn Sleeper data (plus ESPN situations) into scoreboards, root-for/against rows with on-field/red-zone status, and board groups (`groupBoard`: position, game, or league; optional live-only).
+- `js/features/gameday/view.js`: Keyed rendering of the scoreboard and the two-column board (mine left, opponents right).
 - `js/utils/dom.js`: `h()` element builder (text nodes only, no innerHTML).
 - `supabase/migrations/`: SQL applied to the Supabase project.
 

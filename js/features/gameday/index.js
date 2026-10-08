@@ -1,12 +1,15 @@
-// Game-day feature: owns the selected week, the cached Sleeper data, and
-// the refresh loop. Polls fast while games are on and slowly otherwise, and
-// pauses while the tab is hidden.
+// Game-day feature: owns the selected week, the cached Sleeper/ESPN data,
+// the board's grouping and live filter, and the refresh loop. Polls fast
+// while games are on and slowly otherwise, and pauses while the tab is
+// hidden.
 
-import { LIVE_POLL_MS, IDLE_POLL_MS } from "../../config.js?v=4";
-import { getNflState, getLeagueBundle, getMatchups, getWeekSchedule } from "../../services/sleeper.js?v=4";
-import { loadPlayers } from "../../services/players.js?v=4";
-import { buildGameday } from "./model.js?v=4";
-import { createGamedayView } from "./view.js?v=4";
+import { LIVE_POLL_MS, IDLE_POLL_MS } from "../../config.js?v=5";
+import { getNflState, getLeagueBundle, getMatchups, getWeekSchedule } from "../../services/sleeper.js?v=5";
+import { loadPlayers } from "../../services/players.js?v=5";
+import { getWeekSituations } from "../../services/espn.js?v=5";
+import { getGroupBy, setGroupBy } from "../../services/prefs.js?v=5";
+import { buildGameday, groupBoard, GROUP_BY } from "./model.js?v=5";
+import { createGamedayView } from "./view.js?v=5";
 
 const FIRST_WEEK = 1;
 const LAST_WEEK = 18;
@@ -26,14 +29,24 @@ function ago(ms) {
   return minutes < 60 ? `${minutes}m ago` : `${Math.round(minutes / 60)}h ago`;
 }
 
-export function createGameday(root) {
+// `groupByControl`: the settings-sheet fieldset of `name="group-by"` radios.
+export function createGameday(root, { groupByControl }) {
   const view = createGamedayView(root, {
     onPrevWeek: () => changeWeek(-1),
     onNextWeek: () => changeWeek(1),
     onRefresh: () => refresh(),
+    onToggleLive: () => {
+      liveOverride = !liveOnly();
+      renderBoard();
+    },
   });
 
-  let session = null; // { sleeperUserId, leagues, nfl, week, lookupPlayer, bundles, matchups, errors, games }
+  let groupBy = Object.values(GROUP_BY).includes(getGroupBy()) ? getGroupBy() : GROUP_BY.position;
+  // null = follow the games (live-only while any game is on); true/false =
+  // the user tapped the Live button.
+  let liveOverride = null;
+
+  let session = null; // { sleeperUserId, leagues, nfl, week, lookupPlayer, bundles, matchups, errors, games, situations }
   let generation = 0; // bumps on stop/week change so stale responses are dropped
   let pollTimer = null;
   let statusTimer = null;
@@ -41,6 +54,31 @@ export function createGameday(root) {
   let lastModel = null;
   let lastUpdated = 0;
   let lastFailed = false;
+
+  function liveOnly() {
+    if (!lastModel || !lastModel.anyLive) return false;
+    return liveOverride == null ? true : liveOverride;
+  }
+
+  function renderBoard() {
+    if (!lastModel) return;
+    const filtered = liveOnly();
+    view.render(lastModel, groupBoard(lastModel, { groupBy, liveOnly: filtered }), {
+      groupBy,
+      liveOnly: filtered,
+      liveAvailable: lastModel.anyLive,
+    });
+  }
+
+  for (const input of groupByControl.querySelectorAll("input[name='group-by']")) {
+    input.checked = input.value === groupBy;
+    input.addEventListener("change", () => {
+      if (!input.checked) return;
+      groupBy = input.value;
+      setGroupBy(groupBy);
+      renderBoard();
+    });
+  }
 
   function showStatus() {
     if (!session || !lastUpdated) return;
@@ -70,13 +108,15 @@ export function createGameday(root) {
     const { nfl, week, leagues } = session;
     view.setRefreshing(true);
 
-    const [gamesResult, ...leagueResults] = await Promise.allSettled([
+    const [gamesResult, situationsResult, ...leagueResults] = await Promise.allSettled([
       getWeekSchedule(nfl.season, nfl.seasonType, week),
+      getWeekSituations(nfl.season, nfl.seasonType, week),
       ...leagues.map((l) => loadLeague(l, week)),
     ]);
     if (gen !== generation || !session) return;
 
     if (gamesResult.status === "fulfilled") session.games = gamesResult.value;
+    if (situationsResult.status === "fulfilled") session.situations = situationsResult.value;
     leagueResults.forEach((result, i) => {
       const id = leagues[i].leagueId;
       if (result.status === "fulfilled") {
@@ -101,9 +141,10 @@ export function createGameday(root) {
       })),
       lookupPlayer: session.lookupPlayer,
       games: session.games,
+      situations: session.situations,
       today: localDate(),
     });
-    view.render(lastModel);
+    renderBoard();
     view.setRefreshing(false);
     showStatus();
   }
@@ -144,6 +185,7 @@ export function createGameday(root) {
     session.matchups.clear();
     session.errors.clear();
     session.games = [];
+    session.situations = new Map();
     lastModel = null;
     showWeek();
     view.showLoading();
@@ -171,6 +213,7 @@ export function createGameday(root) {
         matchups: new Map(),
         errors: new Map(),
         games: [],
+        situations: new Map(),
       };
 
       if (leagues.length === 0) {

@@ -12,9 +12,9 @@
     <title>Game Day</title>
     <link rel="icon" href="icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="icon.svg" />
-    <link rel="stylesheet" href="styles.css?v=4" />
-    <script src="js/boot.js?v=4"></script>
-    <script type="module" src="js/app.js?v=4"></script>
+    <link rel="stylesheet" href="styles.css?v=5" />
+    <script src="js/boot.js?v=5"></script>
+    <script type="module" src="js/app.js?v=5"></script>
   </head>
   <body>
     <!-- Loading / account error -->
@@ -84,9 +84,13 @@
         <section class="block">
           <div class="board-head">
             <h2 class="block-title block-title--for">Root for <span class="count" data-for-count></span></h2>
+            <button type="button" class="live-toggle" aria-pressed="false" disabled data-live-toggle>
+              <span class="live-toggle-dot" aria-hidden="true"></span>Live
+            </button>
             <h2 class="block-title block-title--against">Root against <span class="count" data-against-count></span></h2>
           </div>
           <div class="board" data-board></div>
+          <p class="board-empty muted" data-board-empty hidden></p>
         </section>
       </main>
 
@@ -118,6 +122,15 @@
         <ul class="toggle-list" data-settings-leagues></ul>
         <p class="form-message" role="status" data-settings-message></p>
       </div>
+
+      <fieldset class="sheet-section segmented-field" data-group-by>
+        <legend class="sheet-label">Group players by</legend>
+        <div class="segmented">
+          <label><input type="radio" name="group-by" value="position" checked /><span>Position</span></label>
+          <label><input type="radio" name="group-by" value="game" /><span>Game</span></label>
+          <label><input type="radio" name="group-by" value="league" /><span>League</span></label>
+        </div>
+      </fieldset>
 
       <button type="button" class="button button--ghost button--danger" data-settings-signout>Sign out</button>
     </dialog>

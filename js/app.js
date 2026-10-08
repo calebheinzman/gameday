@@ -1,8 +1,8 @@
 // Startup and coordination: decides which view is on screen and hands the
 // signed-in user's leagues from the account feature to the game-day feature.
 
-import { createAccount } from "./features/account/index.js?v=4";
-import { createGameday } from "./features/gameday/index.js?v=4";
+import { createAccount } from "./features/account/index.js?v=5";
+import { createGameday } from "./features/gameday/index.js?v=5";
 
 const views = {
   loading: document.querySelector("[data-view='loading']"),
@@ -20,7 +20,9 @@ function showView(name) {
   for (const [key, el] of Object.entries(views)) el.hidden = key !== name;
 }
 
-const gameday = createGameday(views.gameday);
+const gameday = createGameday(views.gameday, {
+  groupByControl: document.querySelector("[data-group-by]"),
+});
 
 const account = createAccount(document.body, {
   onLoading() {

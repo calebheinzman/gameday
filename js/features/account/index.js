@@ -12,9 +12,9 @@ import {
   syncLeagues,
   clearLeagues,
   setLeagueEnabled,
-} from "../../services/supabase.js?v=4";
-import { getNflState, resolveUser, getUserLeagues } from "../../services/sleeper.js?v=4";
-import { h } from "../../utils/dom.js?v=4";
+} from "../../services/supabase.js?v=5";
+import { getNflState, resolveUser, getUserLeagues } from "../../services/sleeper.js?v=5";
+import { h } from "../../utils/dom.js?v=5";
 
 export function createAccount(root, { onSignedOut, onNeedsSetup, onLoading, onReady, onLoadFailed }) {
   const els = {

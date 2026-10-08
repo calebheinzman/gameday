@@ -2,7 +2,8 @@
 // touches rows whose content changed, open lineups stay open, and changed
 // point totals get a brief highlight.
 
-import { h } from "../../utils/dom.js?v=4";
+import { h } from "../../utils/dom.js?v=5";
+import { GROUP_BY } from "./model.js?v=5";
 
 const HEADSHOT_URL = (id) => `https://sleepercdn.com/content/nfl/players/thumb/${id}.jpg`;
 const TEAM_LOGO_URL = (team) => `https://sleepercdn.com/images/team_logos/nfl/${team.toLowerCase()}.png`;
@@ -21,7 +22,7 @@ function pointsLabel(row) {
   return `${formatPoints(row.minPoints)}–${formatPoints(row.maxPoints)}`;
 }
 
-function playerPhoto(player) {
+function playerPhoto(player, badge = null) {
   const isDefense = player.position === "DEF";
   const img = h("img", {
     src: isDefense ? TEAM_LOGO_URL(player.id) : HEADSHOT_URL(player.id),
@@ -32,9 +33,14 @@ function playerPhoto(player) {
   img.addEventListener("error", () => img.remove(), { once: true });
   return h(
     "span",
-    { class: `photo pos-${(player.position || "na").toLowerCase()}`, "aria-hidden": "true" },
-    h("span", { class: "photo-fallback" }, player.position || "?"),
-    img
+    { class: "photo-wrap" },
+    h(
+      "span",
+      { class: `photo pos-${(player.position || "na").toLowerCase()}`, "aria-hidden": "true" },
+      h("span", { class: "photo-fallback" }, player.position || "?"),
+      img
+    ),
+    badge
   );
 }
 
@@ -94,10 +100,30 @@ function shortName(player) {
   return `${parts[0][0]}. ${parts.slice(1).join(" ")}`;
 }
 
-function cellContent(row) {
+// Pinned to the photo: 🏈 when the player is on the field, "RZ" when that
+// drive is in the red zone.
+function fieldBadge(row) {
+  if (row.field === "redzone") return h("span", { class: "field-badge field-badge--redzone", title: "In the red zone" }, "RZ");
+  if (row.field === "field") return h("span", { class: "field-badge", title: "On the field" }, "🏈");
+  return null;
+}
+
+// Second line: position and team, minus whatever the group header says.
+function cellMeta(row, opts) {
+  const parts = [];
+  if (opts.showPosition && row.player.position) parts.push(row.player.position);
+  if (opts.showGame && row.player.team) parts.push(row.player.team);
+  return parts.length ? h("div", { class: "cell-meta" }, parts.join(" · ")) : null;
+}
+
+function cellContent(row, opts) {
   const { player } = row;
+  const tags = [
+    ...(opts.showLeagueTags ? row.leagues.map((l) => h("span", { class: "league-tag", title: l.name }, l.label)) : []),
+    row.otherSide ? h("span", { class: "tag tag--split", title: "You have this player on both sides" }, "both") : null,
+  ].filter(Boolean);
   return [
-    playerPhoto(player),
+    playerPhoto(player, fieldBadge(row)),
     h(
       "div",
       { class: "cell-main" },
@@ -107,49 +133,64 @@ function cellContent(row) {
         h("span", { class: "cell-name-text" }, shortName(player)),
         injuryTag(player)
       ),
-      h(
-        "div",
-        { class: "cell-tags" },
-        player.position ? h("span", { class: "cell-pos" }, player.position) : null,
-        row.leagues.map((l) => h("span", { class: "league-tag", title: l.name }, l.label)),
-        row.otherSide ? h("span", { class: "tag tag--split", title: "You have this player on both sides" }, "both") : null
-      )
+      cellMeta(row, opts),
+      tags.length ? h("div", { class: "cell-tags" }, tags) : null
     ),
-    h("span", { class: "cell-pts" }, pointsLabel(row)),
+    h(
+      "div",
+      { class: "cell-score" },
+      h("span", { class: "cell-pts" }, pointsLabel(row)),
+      opts.showGame && row.game.detail
+        ? h("span", { class: `cell-clock game-state--${row.game.state}` }, row.game.detail)
+        : null
+    ),
   ];
 }
 
-function renderCells(list, rows) {
+function renderCells(list, rows, opts) {
   reconcile(list, rows, {
     key: (row) => row.key,
     signature: (row) =>
-      JSON.stringify([row.player.name, row.player.injury, row.leagues, row.minPoints, row.maxPoints, row.otherSide, row.game.state]),
-    render: (row) => h("li", { class: "cell" }, cellContent(row)),
-    update: (el, row) => el.replaceChildren(...cellContent(row)),
+      JSON.stringify([
+        row.player.name,
+        row.player.injury,
+        row.leagues,
+        row.minPoints,
+        row.maxPoints,
+        row.otherSide,
+        row.game.state,
+        row.game.detail,
+        row.field,
+        opts,
+      ]),
+    render: (row) => h("li", { class: `cell ${row.field ? `is-${row.field}` : ""}` }, cellContent(row, opts)),
+    update: (el, row) => {
+      el.className = `cell ${row.field ? `is-${row.field}` : ""}`;
+      el.replaceChildren(...cellContent(row, opts));
+    },
     onChange: (el, prev, row) => {
       if (prev && (prev.maxPoints !== row.maxPoints || prev.minPoints !== row.minPoints)) flash(el);
     },
   });
 }
 
-function gameHeaderContent(game) {
-  return [
-    h("span", { class: "game-label" }, game.label),
-    game.detail ? h("span", { class: `game-state game-state--${game.state}` }, game.detail) : null,
-  ];
+function groupHeaderContent(group) {
+  const parts = [h("span", { class: "game-label" }, group.title)];
+  if (group.detail) parts.push(h("span", { class: `game-state game-state--${group.state || "none"}` }, group.detail));
+  return parts;
 }
 
-function fillGame(el, group) {
-  el.className = `game game--${group.game.state}`;
-  el.querySelector(".game-header").replaceChildren(...gameHeaderContent(group.game));
-  renderCells(el.querySelector(".cells--mine"), group.mine);
-  renderCells(el.querySelector(".cells--theirs"), group.theirs);
+function fillGroup(el, group, opts) {
+  el.className = `game ${group.state ? `game--${group.state}` : ""}`;
+  el.querySelector(".game-header").replaceChildren(...groupHeaderContent(group));
+  renderCells(el.querySelector(".cells--mine"), group.mine, opts);
+  renderCells(el.querySelector(".cells--theirs"), group.theirs, opts);
 }
 
-function renderBoard(board, groups) {
+function renderBoard(board, groups, opts) {
   reconcile(board, groups, {
     key: (group) => group.key,
-    signature: (group) => JSON.stringify(group),
+    signature: (group) => JSON.stringify([group, opts]),
     render: (group) => {
       const el = h(
         "section",
@@ -162,10 +203,10 @@ function renderBoard(board, groups) {
           h("ul", { class: "cells cells--theirs", "aria-label": "Opponents' starters" })
         )
       );
-      fillGame(el, group);
+      fillGroup(el, group, opts);
       return el;
     },
-    update: fillGame,
+    update: (el, group) => fillGroup(el, group, opts),
   });
 }
 
@@ -248,7 +289,7 @@ function renderScoreboard(container, matchups) {
 
 // --- public ---
 
-export function createGamedayView(root, { onPrevWeek, onNextWeek, onRefresh }) {
+export function createGamedayView(root, { onPrevWeek, onNextWeek, onRefresh, onToggleLive }) {
   const els = {
     weekLabel: root.querySelector("[data-week-label]"),
     prev: root.querySelector("[data-week-prev]"),
@@ -258,6 +299,8 @@ export function createGamedayView(root, { onPrevWeek, onNextWeek, onRefresh }) {
     statusText: root.querySelector("[data-status-text]"),
     scoreboard: root.querySelector("[data-scoreboard]"),
     board: root.querySelector("[data-board]"),
+    boardEmpty: root.querySelector("[data-board-empty]"),
+    liveToggle: root.querySelector("[data-live-toggle]"),
     forCount: root.querySelector("[data-for-count]"),
     againstCount: root.querySelector("[data-against-count]"),
     empty: root.querySelector("[data-empty]"),
@@ -267,10 +310,12 @@ export function createGamedayView(root, { onPrevWeek, onNextWeek, onRefresh }) {
   els.prev.addEventListener("click", onPrevWeek);
   els.next.addEventListener("click", onNextWeek);
   els.refresh.addEventListener("click", onRefresh);
+  els.liveToggle.addEventListener("click", onToggleLive);
 
   function clear() {
     els.scoreboard.replaceChildren();
     els.board.replaceChildren();
+    els.boardEmpty.hidden = true;
     els.forCount.textContent = "";
     els.againstCount.textContent = "";
   }
@@ -295,14 +340,29 @@ export function createGamedayView(root, { onPrevWeek, onNextWeek, onRefresh }) {
       els.empty.hidden = false;
     },
 
-    render(model) {
+    // `board`: groupBoard() output. `opts`: { groupBy, liveOnly, liveAvailable }.
+    render(model, board, { groupBy, liveOnly, liveAvailable }) {
       els.empty.hidden = true;
       els.content.hidden = false;
       els.content.classList.remove("is-loading");
       renderScoreboard(els.scoreboard, model.matchups);
-      renderBoard(els.board, model.gameGroups);
-      els.forCount.textContent = model.rootFor.length ? String(model.rootFor.length) : "";
-      els.againstCount.textContent = model.rootAgainst.length ? String(model.rootAgainst.length) : "";
+
+      // Cells skip whatever their group header already says.
+      const opts = {
+        showPosition: groupBy !== GROUP_BY.position,
+        showGame: groupBy !== GROUP_BY.game,
+        showLeagueTags: groupBy !== GROUP_BY.league,
+      };
+      renderBoard(els.board, board.groups, opts);
+
+      els.liveToggle.disabled = !liveAvailable;
+      els.liveToggle.setAttribute("aria-pressed", String(liveOnly));
+      els.boardEmpty.hidden = board.groups.length > 0;
+      els.boardEmpty.textContent = liveOnly
+        ? "None of your starters are in a live game right now."
+        : "No starters to show.";
+      els.forCount.textContent = board.mineCount ? String(board.mineCount) : "";
+      els.againstCount.textContent = board.theirsCount ? String(board.theirsCount) : "";
     },
 
     // kind: "live" | "idle" | "error" | "loading"

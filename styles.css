@@ -558,7 +558,8 @@ input {
   top: calc(53px + env(safe-area-inset-top));
   z-index: 5;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
   gap: 8px;
   margin: 0 -12px 8px;
   padding: 8px 12px 6px;
@@ -566,11 +567,59 @@ input {
 }
 
 .board-head .block-title {
-  margin: 0 4px;
+  margin: 0 2px;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
 }
 
 .block-title--for {
   color: var(--for);
+}
+
+.live-toggle {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+
+.live-toggle-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.live-toggle[aria-pressed="true"] {
+  background: var(--live);
+  border-color: var(--live);
+  color: #fff;
+}
+
+.live-toggle[aria-pressed="true"] .live-toggle-dot {
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+.live-toggle:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.board-empty {
+  margin: 8px 4px;
+  text-align: center;
+  font-size: 0.9rem;
 }
 
 .block-title--against {
@@ -727,6 +776,72 @@ input {
   white-space: nowrap;
 }
 
+.cell-meta {
+  margin-top: 1px;
+  font-size: 0.7rem;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cell-score {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.cell-clock {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.cell-clock.game-state--live {
+  color: var(--live);
+}
+
+.cell.is-field {
+  background: color-mix(in srgb, var(--for) 7%, transparent);
+}
+
+.cell.is-redzone {
+  background: color-mix(in srgb, var(--live) 12%, transparent);
+}
+
+.photo-wrap {
+  position: relative;
+  display: block;
+  width: 30px;
+  height: 30px;
+}
+
+.field-badge {
+  position: absolute;
+  right: -5px;
+  bottom: -4px;
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+.field-badge--redzone {
+  right: -7px;
+  font-size: 0.55rem;
+  font-weight: 900;
+  padding: 2px 3px;
+  border-radius: 4px;
+  background: var(--live);
+  color: #fff;
+  letter-spacing: 0.02em;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+.cell.is-redzone .photo {
+  box-shadow: inset 0 0 0 2px var(--live);
+}
+
 .cell-tags {
   display: flex;
   flex-wrap: wrap;
@@ -735,12 +850,6 @@ input {
   margin-top: 2px;
 }
 
-.cell-pos {
-  font-size: 0.66rem;
-  font-weight: 800;
-  color: var(--muted);
-  margin-right: 1px;
-}
 
 .league-tag {
   font-size: 0.62rem;
@@ -879,6 +988,59 @@ input {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.segmented-field {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.segmented-field legend {
+  padding: 0;
+  margin-bottom: 8px;
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.segmented label {
+  position: relative;
+}
+
+.segmented input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.segmented span {
+  display: block;
+  padding: 8px 0;
+  border-radius: 9px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.segmented input:checked + span {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.segmented input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 .toggle-list {
