@@ -3,13 +3,13 @@
 // while games are on and slowly otherwise, and pauses while the tab is
 // hidden.
 
-import { LIVE_POLL_MS, IDLE_POLL_MS } from "../../config.js?v=5";
-import { getNflState, getLeagueBundle, getMatchups, getWeekSchedule } from "../../services/sleeper.js?v=5";
-import { loadPlayers } from "../../services/players.js?v=5";
-import { getWeekSituations } from "../../services/espn.js?v=5";
-import { getGroupBy, setGroupBy } from "../../services/prefs.js?v=5";
-import { buildGameday, groupBoard, GROUP_BY } from "./model.js?v=5";
-import { createGamedayView } from "./view.js?v=5";
+import { LIVE_POLL_MS, IDLE_POLL_MS } from "../../config.js?v=6";
+import { getNflState, getLeagueBundle, getMatchups, getWeekSchedule } from "../../services/sleeper.js?v=6";
+import { loadPlayers } from "../../services/players.js?v=6";
+import { getWeekSituations } from "../../services/espn.js?v=6";
+import { getGroupBy, setGroupBy } from "../../services/prefs.js?v=6";
+import { buildGameday, groupBoard, GROUP_BY } from "./model.js?v=6";
+import { createGamedayView } from "./view.js?v=6";
 
 const FIRST_WEEK = 1;
 const LAST_WEEK = 18;

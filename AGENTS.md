@@ -2,7 +2,7 @@
 
 ## Project overview
 
-Game Day is a static, mobile-first site that shows, across every Sleeper league a user is in, who they are starting ("root for") and who their opponents are starting ("root against"), with live scores. Plain HTML, CSS, and ES modules; no build step. Hosted on GitHub Pages. Supabase stores accounts (email magic link), the linked Sleeper account, and which leagues are switched on.
+Game Day is a static, mobile-first site that shows, across every Sleeper league a user is in, who they are starting ("root for") and who their opponents are starting ("root against"), with live scores. Plain HTML, CSS, and ES modules; no build step. Hosted on GitHub Pages. Supabase stores accounts (username + password; usernames map to `<name>@users.gameday.invalid`, email confirmation is off), the linked Sleeper account, and which leagues are switched on.
 
 ## Key files
 
@@ -28,7 +28,7 @@ Game Day is a static, mobile-first site that shows, across every Sleeper league 
 npm run dev
 ```
 
-Starts Live Server on port 3000. Magic links redirect to the page they were requested from, so `http://localhost:3000` must be in the Supabase Auth redirect allow list.
+Starts Live Server on port 3000.
 
 ## Conventions
 

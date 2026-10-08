@@ -1,10 +1,12 @@
-// Account feature: magic-link sign-in, linking a Sleeper username, and the
+// Account feature: username/password sign-in, linking a Sleeper username, and the
 // settings sheet (league on/off switches, change account, sign out). Reports
 // back to the app through callbacks; it never touches the game-day view.
 
 import {
   watchSession,
-  sendMagicLink,
+  signIn,
+  signUp,
+  sessionUsername,
   signOut,
   getProfile,
   saveProfile,
@@ -12,15 +14,17 @@ import {
   syncLeagues,
   clearLeagues,
   setLeagueEnabled,
-} from "../../services/supabase.js?v=5";
-import { getNflState, resolveUser, getUserLeagues } from "../../services/sleeper.js?v=5";
-import { h } from "../../utils/dom.js?v=5";
+} from "../../services/supabase.js?v=6";
+import { getNflState, resolveUser, getUserLeagues } from "../../services/sleeper.js?v=6";
+import { h } from "../../utils/dom.js?v=6";
 
 export function createAccount(root, { onSignedOut, onNeedsSetup, onLoading, onReady, onLoadFailed }) {
   const els = {
     authForm: root.querySelector("[data-auth-form]"),
-    authEmail: root.querySelector("[data-auth-email]"),
-    authSubmit: root.querySelector("[data-auth-submit]"),
+    authUsername: root.querySelector("[data-auth-username]"),
+    authPassword: root.querySelector("[data-auth-password]"),
+    authSignIn: root.querySelector("[data-auth-signin]"),
+    authSignUp: root.querySelector("[data-auth-signup]"),
     authMessage: root.querySelector("[data-auth-message]"),
     setupForm: root.querySelector("[data-setup-form]"),
     setupUsername: root.querySelector("[data-setup-username]"),
@@ -28,6 +32,7 @@ export function createAccount(root, { onSignedOut, onNeedsSetup, onLoading, onRe
     setupCancel: root.querySelector("[data-setup-cancel]"),
     setupMessage: root.querySelector("[data-setup-message]"),
     settings: root.querySelector("[data-settings]"),
+    settingsAccount: root.querySelector("[data-settings-account]"),
     settingsUsername: root.querySelector("[data-settings-username]"),
     settingsLeagues: root.querySelector("[data-settings-leagues]"),
     settingsMessage: root.querySelector("[data-settings-message]"),
@@ -37,7 +42,7 @@ export function createAccount(root, { onSignedOut, onNeedsSetup, onLoading, onRe
     settingsClose: root.querySelector("[data-settings-close]"),
   };
 
-  // { userId, email, profile, season, leagues: [{ leagueId, name, enabled }] }
+  // { userId, username, profile, season, leagues: [{ leagueId, name, enabled }] }
   let state = { userId: undefined }; // undefined until the first session report
   let leaguesChanged = false;
 
@@ -80,7 +85,7 @@ export function createAccount(root, { onSignedOut, onNeedsSetup, onLoading, onRe
   function handleSession(session) {
     const userId = (session && session.user && session.user.id) || null;
     if (userId === state.userId) return; // token refreshes re-announce the same user
-    state = { userId, email: session && session.user ? session.user.email : "" };
+    state = { userId, username: sessionUsername(session) };
     if (!userId) {
       onSignedOut();
       return;
@@ -90,26 +95,31 @@ export function createAccount(root, { onSignedOut, onNeedsSetup, onLoading, onRe
 
   // --- sign in ---
 
-  els.authForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const email = els.authEmail.value.trim();
-    if (!email) return;
-    els.authSubmit.disabled = true;
+  async function authenticate(action, pending) {
+    if (!els.authForm.reportValidity()) return;
+    els.authSignIn.disabled = true;
+    els.authSignUp.disabled = true;
     els.authMessage.className = "form-message";
-    els.authMessage.textContent = "Sending…";
+    els.authMessage.textContent = pending;
     try {
-      await sendMagicLink(email);
-      els.authMessage.classList.add("is-success");
-      els.authMessage.textContent = `Check ${email} and tap the link to sign in.`;
+      await action(els.authUsername.value, els.authPassword.value);
+      els.authMessage.textContent = "";
+      els.authPassword.value = "";
     } catch (err) {
       els.authMessage.classList.add("is-error");
-      els.authMessage.textContent = /rate limit/i.test(err.message)
-        ? "Too many sign-in emails for now (the free email service sends 2 an hour). Use the newest link you already got, or try again later."
-        : err.message;
+      els.authMessage.textContent = err.message;
     } finally {
-      els.authSubmit.disabled = false;
+      els.authSignIn.disabled = false;
+      els.authSignUp.disabled = false;
     }
+  }
+
+  els.authForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    authenticate(signIn, "Signing in…");
   });
+
+  els.authSignUp.addEventListener("click", () => authenticate(signUp, "Creating your account…"));
 
   // --- link Sleeper ---
 
@@ -215,26 +225,14 @@ export function createAccount(root, { onSignedOut, onNeedsSetup, onLoading, onRe
     leaguesChanged = false;
   });
 
-  // A dead sign-in link comes back as "#error=…&error_description=…".
-  function showLinkError() {
-    const params = new URLSearchParams(location.hash.slice(1));
-    if (!params.get("error")) return;
-    els.authMessage.className = "form-message is-error";
-    els.authMessage.textContent =
-      params.get("error_code") === "otp_expired"
-        ? "That sign-in link expired or was already used. Send a new one."
-        : params.get("error_description") || "That sign-in link didn't work. Send a new one.";
-    history.replaceState(null, "", location.pathname + location.search);
-  }
-
   return {
     start() {
-      showLinkError();
       watchSession(handleSession);
     },
 
     openSettings() {
       if (!state.profile) return;
+      els.settingsAccount.textContent = state.username;
       els.settingsUsername.textContent = state.profile.sleeperUsername;
       els.settingsMessage.textContent = "";
       renderLeagueToggles();

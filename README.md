@@ -16,7 +16,7 @@ A static site (HTML/CSS/ES modules, no build step). The browser talks directly t
 
 - **Sleeper's public API** (no key; CORS open): `state/nfl`, `user/…/leagues`, `league/…`, `…/rosters`, `…/users`, `…/matchups/{week}`, `schedule/nfl/…`, and the player directory (cached in localStorage once a day).
 - **ESPN's public scoreboard** (no key; CORS open) for game clock, kickoff times, possession, and red zone.
-- **Supabase**: email magic-link auth, plus the `profiles` and `leagues` tables (row-level security; see `supabase/migrations/`).
+- **Supabase**: username/password auth, plus the `profiles` and `leagues` tables (row-level security; see `supabase/migrations/`).
 
 ## Run locally
 
@@ -28,11 +28,6 @@ npm run dev   # http://localhost:3000
 
 Project `gameday` (ref `ymleajgxpytkxfeswxfp`) in the free **Game Day** organization. Schema: `supabase/migrations/0001_init.sql`.
 
-Auth URL configuration (already set):
+**Sign-in is username + password.** Supabase password auth is keyed by email, so each username is stored as `<username>@users.gameday.invalid` (a reserved, undeliverable domain). **Confirm email** is turned off for the project, so sign-up is instant and Supabase never sends mail, which avoids the free tier's email limit. There's no self-serve password reset; reset a password from the Supabase dashboard (Authentication → Users) or the admin API.
 
-- **Site URL**: `https://calebheinzman.github.io/gameday/`
-- **Redirect URLs**: `https://calebheinzman.github.io/gameday/**`, `http://localhost:3000/**`
-
-Supabase's built-in email sender only sends a few emails per hour and, on the free tier, its templates can't be customized. That's fine for personal use; add custom SMTP under Authentication → Emails if you share the site widely.
-
-Sign-in links open in your phone's default browser, so sign in and use the site there (Safari on iPhone).
+Auth URL configuration (Site URL `https://calebheinzman.github.io/gameday/`, redirects for that URL and `http://localhost:3000/**`) is set but only matters if email links are ever turned back on.

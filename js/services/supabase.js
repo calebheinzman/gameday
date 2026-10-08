@@ -1,9 +1,13 @@
 // Accounts and saved settings. Supabase holds one profile row (the linked
 // Sleeper account) and one row per league per user; row-level security
 // limits every query to the signed-in user's own rows.
+//
+// Sign-in is username + password. Supabase password auth is keyed by email,
+// so each username maps to an address on a reserved, undeliverable domain;
+// email confirmation is off for the project, so nothing is ever sent.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.117.3";
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "../config.js?v=5";
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "../config.js?v=6";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
@@ -23,9 +27,45 @@ export function watchSession(callback) {
   });
 }
 
-export async function sendMagicLink(email) {
-  const redirectTo = `${location.origin}${location.pathname}`;
-  unwrap(await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } }));
+const USERNAME_DOMAIN = "users.gameday.invalid";
+const USERNAME_PATTERN = /^[a-z0-9_.-]{3,24}$/;
+
+// Lowercased username, or throws a readable error if it isn't allowed.
+export function normalizeUsername(raw) {
+  const username = String(raw || "").trim().toLowerCase();
+  if (!USERNAME_PATTERN.test(username)) {
+    throw new Error("Usernames are 3–24 letters, numbers, dots, dashes or underscores.");
+  }
+  return username;
+}
+
+function usernameEmail(username) {
+  return `${normalizeUsername(username)}@${USERNAME_DOMAIN}`;
+}
+
+// The username behind a session, for display.
+export function sessionUsername(session) {
+  const email = (session && session.user && session.user.email) || "";
+  return email.endsWith(`@${USERNAME_DOMAIN}`) ? email.split("@")[0] : email;
+}
+
+export async function signIn(username, password) {
+  const { error } = await supabase.auth.signInWithPassword({ email: usernameEmail(username), password });
+  if (error) {
+    throw new Error(/invalid login credentials/i.test(error.message) ? "Wrong username or password." : error.message);
+  }
+}
+
+export async function signUp(username, password) {
+  const { data, error } = await supabase.auth.signUp({ email: usernameEmail(username), password });
+  if (error) {
+    throw new Error(/already registered|already exists/i.test(error.message) ? "That username is taken." : error.message);
+  }
+  // With email confirmation off a session comes back immediately; an empty
+  // identities list means the username was already taken.
+  if (!data.session || (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0)) {
+    throw new Error("That username is taken.");
+  }
 }
 
 export async function signOut() {

@@ -12,9 +12,9 @@
     <title>Game Day</title>
     <link rel="icon" href="icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="icon.svg" />
-    <link rel="stylesheet" href="styles.css?v=5" />
-    <script src="js/boot.js?v=5"></script>
-    <script type="module" src="js/app.js?v=5"></script>
+    <link rel="stylesheet" href="styles.css?v=6" />
+    <script src="js/boot.js?v=6"></script>
+    <script type="module" src="js/app.js?v=6"></script>
   </head>
   <body>
     <!-- Loading / account error -->
@@ -31,10 +31,15 @@
         <p class="lede">Every Sleeper league on one screen: who you start, who you face, live.</p>
         <form class="form" data-auth-form>
           <label class="field">
-            <span>Email</span>
-            <input type="email" name="email" autocomplete="email" inputmode="email" required data-auth-email />
+            <span>Username</span>
+            <input type="text" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required data-auth-username />
           </label>
-          <button type="submit" class="button button--primary" data-auth-submit>Send sign-in link</button>
+          <label class="field">
+            <span>Password</span>
+            <input type="password" name="password" autocomplete="current-password" minlength="6" required data-auth-password />
+          </label>
+          <button type="submit" class="button button--primary" data-auth-signin>Sign in</button>
+          <button type="button" class="button" data-auth-signup>Create account</button>
           <p class="form-message" role="status" data-auth-message></p>
         </form>
       </div>
@@ -104,6 +109,11 @@
       <div class="sheet-header">
         <h2 id="settings-title">Settings</h2>
         <button type="button" class="icon-button" aria-label="Close settings" data-settings-close>✕</button>
+      </div>
+
+      <div class="sheet-section">
+        <div class="sheet-label">Signed in as</div>
+        <div class="sheet-row"><strong data-settings-account></strong></div>
       </div>
 
       <div class="sheet-section">
